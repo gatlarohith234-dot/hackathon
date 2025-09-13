@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EduCode — Programming Education Platform (Prototype)</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#60a5fa;--success:#10b981;--danger:#ef4444}
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,-apple-system,Helvetica,Arial}
+    body{margin:0;background:linear-gradient(180deg,#041028 0%, #081224 100%);color:#e6eef8}
+    header{display:flex;align-items:center;gap:16px;padding:18px 24px;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.03)}
+    header h1{font-size:18px;margin:0}
+    .container{display:grid;grid-template-columns:1fr 420px;gap:18px;padding:18px}
+    .card{background:var(--card);border-radius:12px;padding:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6);min-height:120px}
+
+    /* Editor area */
+    .editor-area{display:flex;flex-direction:column;gap:8px}
+    .editor-toolbar{display:flex;gap:8px;align-items:center}
+    .btn{background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer}
+    .btn.primary{background:linear-gradient(180deg,var(--accent),#3b82f6);color:#04283a;border:none}
+    .btn.warn{background:linear-gradient(180deg,#fb923c,#f97316);color:#081017;border:none}
+    textarea.code{width:100%;height:560px;background:#031126;color:#e6eef8;border-radius:8px;padding:12px;border:1px solid rgba(255,255,255,0.03);font-family:monospace;font-size:13px;resize:vertical}
+    .split{display:flex;gap:12px}
+
+    /* Right column sections */
+    .panel{margin-bottom:12px}
+    .panel h3{margin:0 0 8px 0;font-size:14px}
+    .analysis-output{background:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(255,255,255,0.02));padding:10px;border-radius:8px;font-family:monospace;height:150px;overflow:auto;color:#e6eef8;border:1px solid rgba(255,255,255,0.02)}
+    .errors{color:var(--danger);font-family:monospace}
+    .suggestion{color:var(--accent);font-family:monospace}
+    .exercise-list{display:flex;flex-direction:column;gap:8px}
+    .exercise{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
+    .tutorial-step{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;min-height:120px}
+
+    footer{padding:12px 24px;color:var(--muted);font-size:13px;text-align:center}
+
+    /* responsive */
+    @media (max-width:980px){.container{grid-template-columns:1fr}textarea.code{height:380px}}
+  </style>
+</head>
+<body>
+  <header>
+    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28'><rect width='28' height='28' rx='6' fill='%2360a5fa'/><text x='50%' y='58%' font-size='14' font-family='Arial' text-anchor='middle' fill='white'>EC</text></svg>" alt="logo" style="width:36px;height:36px;border-radius:8px;"/>
+    <div>
+      <h1>EduCode — Programming Education Platform (Frontend Prototype)</h1>
+      <div style="font-size:12px;color:var(--muted)">Code analysis • error detection • debugging suggestions • exercises • tutorials</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card editor-area">
+      <div class="editor-toolbar">
+        <select id="lang" class="btn" style="padding:6px 8px">
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python (basic static)</option>
+          <option value="html">HTML/CSS</option>
+        </select>
+        <button class="btn primary" id="analyzeBtn">Analyze Code</button>
+        <button class="btn" id="detectBtn">Detect Errors</button>
+        <button class="btn" id="debugBtn">Debug Suggestions</button>
+        <button class="btn warn" id="runBtn">Run (JS only)</button>
+        <div style="margin-left:auto;color:var(--muted);font-size:13px">Saved: <span id="savedIndicator">no</span></div>
+      </div>
+
+      <textarea id="codeEditor" class="code" spellcheck="false">// Welcome to EduCode — try a simple JavaScript snippet
+console.log('Hello, EduCode!')
+
+/*
+Try:
+- Intentionally create a missing parenthesis
+- Use console.log to print results
+*/
+</textarea>
+
+      <div style="display:flex;gap:12px;align-items:center;margin-top:8px">
+        <button class="btn" id="saveBtn">Save locally</button>
+        <button class="btn" id="loadSampleBtn">Load sample exercises</button>
+        <button class="btn" id="clearBtn">Clear editor</button>
+        <div style="margin-left:auto;color:var(--muted);font-size:13px">Prototype — Frontend only</div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:12px;align-items:center">
+        <div style="flex:1" class="card">
+          <h3 style="margin-top:0">Live Preview / Run Output</h3>
+          <iframe id="sandbox" style="width:100%;height:160px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)" sandbox="allow-scripts"></iframe>
+        </div>
+        <div style="width:260px" class="card">
+          <h3 style="margin-top:0">Quick Tips</h3>
+          <div style="font-size:13px;color:var(--muted);line-height:1.45">
+            • Use <code>Analyze</code> to get a structural summary of the code.<br>
+            • Use <code>Detect Errors</code> to find common issues (unmatched braces, indentation hints).
+            <br>• <code>Debug Suggestions</code> gives recommended fixes and learning links.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside>
+      <div class="panel card">
+        <h3>Analysis</h3>
+        <div id="analysis" class="analysis-output">Press <strong>Analyze Code</strong> to see a structural overview.</div>
+      </div>
+
+      <div class="panel card">
+        <h3>Errors & Suggestions</h3>
+        <div id="errors" class="analysis-output errors">No errors detected yet.</div>
+        <div id="suggestions" style="margin-top:8px" class="suggestion">No suggestions yet.</div>
+      </div>
+
+      <div class="panel card">
+        <h3>Exercise Generator</h3>
+        <div class="exercise-list" id="exercises">
+          <div class="exercise">Click <strong>Load sample exercises</strong> or use the button below to generate a practice task.</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" id="genExercise">Generate Exercise</button>
+          <button class="btn" id="shuffleExercise">Shuffle</button>
+        </div>
+      </div>
+
+      <div class="panel card">
+        <h3>Interactive Tutorial</h3>
+        <div id="tutorial" class="tutorial-step">Use <strong>Load sample exercises</strong> to populate a step-by-step guide, or generate one.</div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" id="prevStep">Prev</button>
+          <button class="btn" id="nextStep">Next</button>
+          <button class="btn primary" id="startTutorial">Start Tutorial</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>Prototype UI — save this file as <code>educode-prototype.html</code> and open in a browser. To extend: integrate a code editor (Monaco/CodeMirror), language servers (LSP), and backend analysis.</footer>
+
+  <script>
+    // Minimal frontend-only analysis + UI wiring
+    const editor = document.getElementById('codeEditor');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const detectBtn = document.getElementById('detectBtn');
+    const debugBtn = document.getElementById('debugBtn');
+    const runBtn = document.getElementById('runBtn');
+    const analysisEl = document.getElementById('analysis');
+    const errorsEl = document.getElementById('errors');
+    const suggestionsEl = document.getElementById('suggestions');
+    const sandbox = document.getElementById('sandbox');
+    const saveBtn = document.getElementById('saveBtn');
+    const savedIndicator = document.getElementById('savedIndicator');
+    const loadSampleBtn = document.getElementById('loadSampleBtn');
+    const genExerciseBtn = document.getElementById('genExercise');
+    const exercisesEl = document.getElementById('exercises');
+    const nextStep = document.getElementById('nextStep');
+    const prevStep = document.getElementById('prevStep');
+    const startTutorial = document.getElementById('startTutorial');
+    const tutorialEl = document.getElementById('tutorial');
+    const langSelect = document.getElementById('lang');
+
+    // Save/load local
+    saveBtn.addEventListener('click', ()=>{
+      localStorage.setItem('educode_saved', editor.value);
+      savedIndicator.textContent = 'yes';
+      setTimeout(()=>savedIndicator.textContent='yes (saved at '+ new Date().toLocaleTimeString()+')',300);
+    });
+    if(localStorage.getItem('educode_saved')){
+      savedIndicator.textContent='yes';
+    }
+
+    // Analyze - structural summary
+    analyzeBtn.addEventListener('click', ()=>{
+      const code = editor.value;
+      const lang = langSelect.value;
+      let out = '';
+      out += 'Language: '+lang+'\n\n';
+      const lines = code.split('\n');
+      out += 'Lines: '+lines.length+' | Characters: '+code.length+'\n\n';
+
+      // simple counts
+      const funcs = (code.match(/function\s+\w+|=>/g) || []).length;
+      const consoles = (code.match(/console\.log/g) || []).length;
+      const imports = (code.match(/^\s*(import|from)\s+/mgi) || []).length;
+      out += 'Detected functions/arrows: '+funcs+'\n';
+      out += 'console.log calls: '+consoles+'\n';
+      out += 'imports/exports: '+imports+'\n\n';
+
+      // simple style hint
+      const longLine = lines.find(l=>l.length>120);
+      if(longLine){ out += 'Style: Found a very long line (>120 chars). Consider breaking into smaller parts.\n'; }
+      out += '\nSummary: This is a frontend-only static analyzer. For deep analysis integrate a real LSP/back-end.';
+      analysisEl.textContent = out;
+    });
+
+    // Detect errors - naive checks
+    detectBtn.addEventListener('click', ()=>{
+      const code = editor.value;
+      const errs = [];
+      const sugg = [];
+
+      // unmatched parentheses, braces, brackets
+      const pairs = { '(':')','[':']','{':'}' };
+      const openStack = [];
+      for(let ch of code){
+        if(['(','[','{'].includes(ch)) openStack.push(ch);
+        if([')',']','}'].includes(ch)){
+          const last = openStack.pop();
+          if(!last || pairs[last] !== ch) errs.push('Mismatched bracket: expected '+(last?pairs[last]+' but found '+ch:ch));
+        }
+      }
+      if(openStack.length>0) errs.push('Unclosed bracket(s) detected: '+openStack.join(' '));
+
+      // simple missing semicolon hint for JS: if line ends with a non-semicolon and not block
+      const jsLines = code.split('\n');
+      const possibleMissingSemi = jsLines.filter(l=>/\w\)\s*$/.test(l) || /console\.log\(|\w\s*$/.test(l) ).slice(0,5);
+
+      // detect TODOs and FIXME
+      const todos = (code.match(/TODO|FIXME/gi) || []);
+      if(todos.length) sugg.push('Found TODO/FIXME comments: '+todos.join(', '));
+
+      // detect common runtime errors pattern
+      if(/\b==\b/.test(code)) sugg.push('Use === instead of == for strict equality in JavaScript.');
+
+      if(errs.length===0) {
+        errorsEl.textContent = 'No bracket mismatches detected by basic check.';
+      } else {
+        errorsEl.textContent = errs.join('\n');
+      }
+
+      if(sugg.length===0) sugg.push('No quick suggestions. Use Debug Suggestions for targeted fixes.');
+      suggestionsEl.textContent = sugg.join('\n');
+    });
+
+    // Debug suggestions - map small patterns to suggestions
+    debugBtn.addEventListener('click', ()=>{
+      const code = editor.value;
+      const fixes = [];
+      if(/console\.log\(.+\)/.test(code)) fixes.push('Consider removing or wrapping console.log statements in a debug flag for production.');
+      if(/\beval\(/.test(code)) fixes.push('Avoid eval() — it is a security risk.');
+      if(/\bvar\b/.test(code)) fixes.push('Use let/const instead of var for block scoping.');
+      if(/\b==\b/.test(code)) fixes.push('Prefer === for strict equality to avoid coercion bugs.');
+      if(/SyntaxError:/.test(code)) fixes.push('Look for syntax errors: unmatched quotes, parentheses, or missing commas.');
+      if(fixes.length===0) fixes.push('No immediate stylistic issues found by the lightweight heuristic engine.');
+      suggestionsEl.textContent = fixes.join('\n');
+    });
+
+    // Run JS safely in sandbox iframe
+    runBtn.addEventListener('click', ()=>{
+      const code = editor.value;
+      const lang = langSelect.value;
+      if(lang !== 'javascript'){
+        analysisEl.textContent = 'Run is available for JavaScript only in this prototype.';
+        return;
+      }
+      const blob = new Blob([
+        `<!doctype html><html><body><script>\ntry{\n  // Capture console
+  (function(){\n    const logs=[];console.log = function(){logs.push({type:'log', args: Array.from(arguments)})};\n    console.error = function(){logs.push({type:'error', args: Array.from(arguments)})};\n    console.warn = function(){logs.push({type:'warn', args: Array.from(arguments)})};\n    // user code\n    ${code.replace(/<\/script>/gi,'<\\/script>')}\n    parent.postMessage({type:'runResult', logs}, '*');\n  })();\n}catch(e){ parent.postMessage({type:'runError', message: e && e.message ? e.message : String(e)}, '*'); }</script></body></html>`
+      ], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      sandbox.src = url;
+    });
+
+    // receive logs
+    window.addEventListener('message', (ev)=>{
+      const data = ev.data;
+      if(!data || typeof data !== 'object') return;
+      if(data.type === 'runResult'){
+        const lines = data.logs.map(l=> (l.type+': '+ l.args.map(a=>String(a)).join(' '))).join('\n');
+        analysisEl.textContent = 'Run output:\n\n'+lines;
+      }
+      if(data.type === 'runError'){
+        errorsEl.textContent = 'Runtime error: '+data.message;
+      }
+    });
+
+    // Sample exercises
+    const sampleExercises = [
+      {title:'Print Hello', desc:'Write a program to print "Hello, World!" to the console.'},
+      {title:'Sum of Two Numbers', desc:'Read two numbers and print their sum.'},
+      {title:'Reverse String', desc:'Write a function that reverses a string.'},
+      {title:'Factorial (iterative)', desc:'Compute factorial of n using a loop.'}
+    ];
+
+    loadSampleBtn.addEventListener('click', ()=>{
+      exercisesEl.innerHTML = '';
+      sampleExercises.forEach((ex,i)=>{
+        const div = document.createElement('div');div.className='exercise';
+        div.innerHTML = `<strong>Exercise ${i+1} - ${ex.title}</strong><div style="color:var(--muted);margin-top:6px">${ex.desc}</div>`;
+        exercisesEl.appendChild(div);
+      });
+      tutorialSteps = [
+        'Welcome to the interactive tutorial. We will solve "Print Hello" step-by-step.',
+        'Step 1: Open the editor and type console.log("Hello, World!")',
+        'Step 2: Click Run to execute your JavaScript in the safe iframe sandbox.',
+        'Step 3: Use Analyze and Detect Errors to inspect your code structure and catch issues.',
+        'Step 4: Try modifying the code to print your name.'
+      ];
+      tutorialIndex = 0; tutorialEl.textContent = tutorialSteps[0];
+    });
+
+    genExerciseBtn.addEventListener('click', ()=>{
+      const pool = sampleExercises;
+      const pick = pool[Math.floor(Math.random()*pool.length)];
+      const div = document.createElement('div');div.className='exercise';
+      div.innerHTML = `<strong>Random: ${pick.title}</strong><div style="color:var(--muted);margin-top:6px">${pick.desc}</div>`;
+      exercisesEl.prepend(div);
+    });
+
+    // Tutorial flow
+    let tutorialSteps = ['Press "Load sample exercises" to populate a tutorial.'];
+    let tutorialIndex = 0;
+    startTutorial.addEventListener('click', ()=>{ tutorialIndex=0; tutorialEl.textContent = tutorialSteps[tutorialIndex]; });
+    nextStep.addEventListener('click', ()=>{ if(tutorialIndex < tutorialSteps.length-1) tutorialIndex++; tutorialEl.textContent = tutorialSteps[tutorialIndex]; });
+    prevStep.addEventListener('click', ()=>{ if(tutorialIndex>0) tutorialIndex--; tutorialEl.textContent = tutorialSteps[tutorialIndex]; });
+
+    // Clear editor
+    document.getElementById('clearBtn').addEventListener('click', ()=>{ if(confirm('Clear editor?')) editor.value = ''; });
+
+    // simple keyboard shortcut: Ctrl+S to save
+    window.addEventListener('keydown', (e)=>{
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){
+        e.preventDefault(); localStorage.setItem('educode_saved', editor.value); savedIndicator.textContent='yes';
+      }
+    });
+
+    // Basic auto-detect errors on input (debounced)
+    let timer;
+    editor.addEventListener('input', ()=>{ clearTimeout(timer); timer = setTimeout(()=>{ detectBtn.click(); }, 900); });
+
+    // initial detect
+    detectBtn.click();
+  </script>
+</body>
+</html>
